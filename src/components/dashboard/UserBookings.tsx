@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { useAuth } from '../../context/AuthContext';
 import { Calendar, Clock, DollarSign, Trash2 } from 'lucide-react';
 
 const UserBookings: React.FC = () => {
-  const { currentUser } = useAuth();
   const { userBookings, cancelBooking } = useBooking();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   
@@ -59,8 +57,8 @@ const UserBookings: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800">My Bookings</h2>
-        <p className="text-gray-600 mt-1">Manage your workspace reservations</p>
+        <h2 className="text-xl font-semibold text-gray-800">All Bookings</h2>
+        <p className="text-gray-600 mt-1">Manage workspace reservations</p>
       </div>
       
       <div className="divide-y divide-gray-200">
@@ -104,7 +102,7 @@ const UserBookings: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                         <div className="flex items-center text-gray-600">
                           <Clock className="h-4 w-4 mr-1" />
                           {booking.duration} hours
@@ -113,6 +111,12 @@ const UserBookings: React.FC = () => {
                         <div className="flex items-center text-gray-600">
                           <DollarSign className="h-4 w-4 mr-1" />
                           ${booking.totalPrice.toFixed(2)}
+                        </div>
+
+                        <div className="flex items-center text-gray-600">
+                          <span className="text-xs px-2 py-1 bg-gray-200 rounded-full">
+                            {booking.membershipTier}
+                          </span>
                         </div>
                         
                         <div className="md:text-right">

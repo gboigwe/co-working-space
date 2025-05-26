@@ -1,8 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { Desk, Booking, TimeSlot } from '../types';
+import { Desk, Booking, TimeSlot, MembershipTier } from '../types';
 import { generateDesks, generateTimeSlots, generateBookings } from '../utils/mockData';
 import { calculatePrice } from '../utils/pricing';
-import { useAuth } from './AuthContext';
 
 interface BookingContextType {
   desks: Desk[];
@@ -12,10 +11,12 @@ interface BookingContextType {
   selectedDesk: Desk | null;
   selectedStartTime: string;
   selectedEndTime: string;
+  selectedMembershipTier: MembershipTier;
   setSelectedDate: (date: string) => void;
   setSelectedDesk: (desk: Desk | null) => void;
   setSelectedStartTime: (time: string) => void;
   setSelectedEndTime: (time: string) => void;
+  setSelectedMembershipTier: (tier: MembershipTier) => void;
   calculateBookingPrice: () => number;
   createBooking: () => Promise<Booking | null>;
   isDeskAvailable: (deskId: number, date: string, startTime: string, endTime: string) => boolean;
@@ -26,7 +27,6 @@ interface BookingContextType {
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { currentUser } = useAuth();
   const [desks, setDesks] = useState<Desk[]>(generateDesks());
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(generateTimeSlots());
   const [bookings, setBookings] = useState<Booking[]>(generateBookings());
@@ -34,19 +34,16 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [selectedDesk, setSelectedDesk] = useState<Desk | null>(null);
   const [selectedStartTime, setSelectedStartTime] = useState<string>('');
   const [selectedEndTime, setSelectedEndTime] = useState<string>('');
+  const [selectedMembershipTier, setSelectedMembershipTier] = useState<MembershipTier>('Premium');
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
-    if (currentUser) {
-      const filteredBookings = bookings.filter(booking => booking.userId === currentUser.id);
-      setUserBookings(filteredBookings);
-    } else {
-      setUserBookings([]);
-    }
-  }, [currentUser, bookings]);
+    // For demo purposes, show all bookings as user bookings
+    setUserBookings(bookings);
+  }, [bookings]);
 
   const calculateBookingPrice = (): number => {
-    if (!selectedDesk || !selectedStartTime || !selectedEndTime || !currentUser) {
+    if (!selectedDesk || !selectedStartTime || !selectedEndTime) {
       return 0;
     }
 
@@ -59,7 +56,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     return calculatePrice(
-      currentUser.membershipTier,
+      selectedMembershipTier,
       selectedDesk.type,
       duration
     );
@@ -94,7 +91,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const createBooking = async (): Promise<Booking | null> => {
-    if (!selectedDesk || !selectedStartTime || !selectedEndTime || !currentUser) {
+    if (!selectedDesk || !selectedStartTime || !selectedEndTime) {
       return null;
     }
 
@@ -115,13 +112,13 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const newBooking: Booking = {
       id: `booking-${Date.now()}`,
-      userId: currentUser.id,
+      userId: 'demo-user', // Static user ID for demo
       deskId: selectedDesk.id,
       date: selectedDate,
       startTime: selectedStartTime,
       endTime: selectedEndTime,
       duration,
-      membershipTier: currentUser.membershipTier,
+      membershipTier: selectedMembershipTier,
       totalPrice,
     };
 
@@ -148,10 +145,12 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
       selectedDesk,
       selectedStartTime,
       selectedEndTime,
+      selectedMembershipTier,
       setSelectedDate,
       setSelectedDesk,
       setSelectedStartTime,
       setSelectedEndTime,
+      setSelectedMembershipTier,
       calculateBookingPrice,
       createBooking,
       isDeskAvailable,

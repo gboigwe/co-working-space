@@ -1,12 +1,12 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
+import Header from '../components/Header';
 import { Building, Cpu, CreditCard, Clock, Check, Zap } from 'lucide-react';
 
 const HomePage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-
   return (
     <div className="flex flex-col min-h-screen">
+      <Header />
+      
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16 md:py-24">
         <div className="container mx-auto px-4">
@@ -19,10 +19,10 @@ const HomePage: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <a
-                href={isAuthenticated ? "/booking" : "/register"}
+                href="/booking"
                 className="px-6 py-3 bg-white text-blue-700 font-semibold rounded-md hover:bg-blue-50 transition-colors duration-300 shadow-md"
               >
-                {isAuthenticated ? "Book Now" : "Get Started"}
+                Book Now
               </a>
               <a
                 href="#features"
@@ -72,7 +72,7 @@ const HomePage: React.FC = () => {
                   </li>
                 </ul>
                 <a
-                  href="/register"
+                  href="/booking"
                   className="block mt-6 px-4 py-2 bg-blue-600 text-white text-center rounded-md hover:bg-blue-700 transition-colors duration-200"
                 >
                   Get Started
@@ -113,7 +113,7 @@ const HomePage: React.FC = () => {
                   </li>
                 </ul>
                 <a
-                  href="/register"
+                  href="/booking"
                   className="block mt-6 px-4 py-2 bg-teal-600 text-white text-center rounded-md hover:bg-teal-700 transition-colors duration-200"
                 >
                   Get Started
@@ -151,7 +151,7 @@ const HomePage: React.FC = () => {
                   </li>
                 </ul>
                 <a
-                  href="/register"
+                  href="/booking"
                   className="block mt-6 px-4 py-2 bg-amber-600 text-white text-center rounded-md hover:bg-amber-700 transition-colors duration-200"
                 >
                   Get Started
@@ -224,11 +224,11 @@ const HomePage: React.FC = () => {
             Join our co-working community today and experience the perfect work environment.
           </p>
           <a
-            href={isAuthenticated ? "/booking" : "/register"}
+            href="/booking"
             className="inline-flex items-center px-6 py-3 bg-white text-blue-700 font-semibold rounded-md hover:bg-blue-50 transition-colors duration-300"
           >
             <Zap className="mr-2 h-5 w-5" />
-            {isAuthenticated ? "Book Your Desk" : "Sign Up Now"}
+            Book Your Desk
           </a>
         </div>
       </section>
@@ -254,8 +254,8 @@ const HomePage: React.FC = () => {
               <ul className="space-y-2">
                 <li><a href="/" className="hover:text-teal-400 transition-colors">Home</a></li>
                 <li><a href="/booking" className="hover:text-teal-400 transition-colors">Book a Desk</a></li>
-                <li><a href="/login" className="hover:text-teal-400 transition-colors">Login</a></li>
-                <li><a href="/register" className="hover:text-teal-400 transition-colors">Register</a></li>
+                <li><a href="/my-bookings" className="hover:text-teal-400 transition-colors">My Bookings</a></li>
+                <li><a href="/dashboard" className="hover:text-teal-400 transition-colors">Dashboard</a></li>
               </ul>
             </div>
 

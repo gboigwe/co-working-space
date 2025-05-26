@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { useAuth } from '../../context/AuthContext';
 import { Calendar, Clock, CreditCard } from 'lucide-react';
 
 const BookingForm: React.FC = () => {
-  const { currentUser } = useAuth();
   const { 
     timeSlots, 
     selectedDate, 
     setSelectedDate, 
+    selectedDesk,
+    selectedMembershipTier,
     setSelectedStartTime, 
     setSelectedEndTime,
     calculateBookingPrice,
@@ -82,7 +82,7 @@ const BookingForm: React.FC = () => {
   };
   
   const totalPrice = calculateBookingPrice();
-  const canBook = startTime && endTime && totalPrice > 0;
+  const canBook = startTime && endTime && totalPrice > 0 && selectedDesk;
   
   if (bookingSuccess) {
     return (
@@ -204,7 +204,7 @@ const BookingForm: React.FC = () => {
               <div className="mt-2 space-y-1 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Membership Tier:</span>
-                  <span className="font-medium text-gray-800">{currentUser?.membershipTier}</span>
+                  <span className="font-medium text-gray-800">{selectedMembershipTier}</span>
                 </div>
                 
                 <div className="flex justify-between text-gray-600">

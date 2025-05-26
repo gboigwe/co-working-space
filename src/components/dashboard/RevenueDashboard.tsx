@@ -6,34 +6,35 @@ const RevenueDashboard: React.FC = () => {
   const { bookings } = useBooking();
   
   const data = useMemo(() => {
+    // Early return if no bookings to prevent unnecessary calculations
+    if (!bookings || bookings.length === 0) {
+      return {
+        totalRevenue: 0,
+        revenueByTier: {},
+        bookingsByDeskType: { individual: 0, team: 0 },
+        chartData: [],
+      };
+    }
+
     // Calculate total revenue
     const totalRevenue = bookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
     
     // Calculate revenue by membership tier
     const revenueByTier = bookings.reduce((acc, booking) => {
-      if (!acc[booking.membershipTier]) {
-        acc[booking.membershipTier] = 0;
-      }
-      acc[booking.membershipTier] += booking.totalPrice;
+      acc[booking.membershipTier] = (acc[booking.membershipTier] || 0) + booking.totalPrice;
       return acc;
     }, {} as Record<string, number>);
     
     // Calculate bookings count by desk type
     const bookingsByDeskType = bookings.reduce((acc, booking) => {
       const deskType = booking.deskId > 10 ? 'team' : 'individual';
-      if (!acc[deskType]) {
-        acc[deskType] = 0;
-      }
-      acc[deskType] += 1;
+      acc[deskType] = (acc[deskType] || 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
+    }, { individual: 0, team: 0 } as Record<string, number>);
     
-    // Calculate revenue by date
+    // Calculate revenue by date (limit to last 7 days for performance)
     const revenueByDate = bookings.reduce((acc, booking) => {
-      if (!acc[booking.date]) {
-        acc[booking.date] = 0;
-      }
-      acc[booking.date] += booking.totalPrice;
+      acc[booking.date] = (acc[booking.date] || 0) + booking.totalPrice;
       return acc;
     }, {} as Record<string, number>);
     
@@ -55,7 +56,15 @@ const RevenueDashboard: React.FC = () => {
     };
   }, [bookings]);
   
-  const maxRevenue = Math.max(...data.chartData.map(d => d.revenue), 0);
+  const maxRevenue = useMemo(() => 
+    Math.max(...data.chartData.map(d => d.revenue), 0), 
+    [data.chartData]
+  );
+
+  // Helper function to get percentage
+  const getPercentage = (value: number, total: number) => {
+    return total > 0 ? (value / total) * 100 : 0;
+  };
   
   return (
     <div className="space-y-6">
@@ -89,7 +98,7 @@ const RevenueDashboard: React.FC = () => {
               <TrendingUp className="h-5 w-5 text-amber-600" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">{data.bookingsByDeskType.individual || 0}</div>
+          <div className="text-2xl font-bold text-gray-800">{data.bookingsByDeskType.individual}</div>
           <div className="mt-1 text-sm text-gray-500">Individual desk bookings</div>
         </div>
         
@@ -100,7 +109,7 @@ const RevenueDashboard: React.FC = () => {
               <BarChart className="h-5 w-5 text-purple-600" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">{data.bookingsByDeskType.team || 0}</div>
+          <div className="text-2xl font-bold text-gray-800">{data.bookingsByDeskType.team}</div>
           <div className="mt-1 text-sm text-gray-500">Team space bookings</div>
         </div>
       </div>
@@ -116,7 +125,7 @@ const RevenueDashboard: React.FC = () => {
                   <div 
                     className="w-full bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all cursor-pointer relative group"
                     style={{ 
-                      height: `${(item.revenue / maxRevenue) * 100}%`,
+                      height: `${maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0}%`,
                       minHeight: '4px'
                     }}
                   >
@@ -141,113 +150,89 @@ const RevenueDashboard: React.FC = () => {
           <h3 className="text-lg font-medium text-gray-700 mb-4">Revenue by Membership</h3>
           
           <div className="space-y-4">
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium text-gray-600">Basic</span>
-                <span className="text-sm font-medium text-gray-800">
-                  ${(data.revenueByTier.Basic || 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full" 
-                  style={{ 
-                    width: `${data.totalRevenue ? ((data.revenueByTier.Basic || 0) / data.totalRevenue) * 100 : 0}%` 
-                  }}
-                ></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium text-gray-600">Premium</span>
-                <span className="text-sm font-medium text-gray-800">
-                  ${(data.revenueByTier.Premium || 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-teal-600 h-2 rounded-full" 
-                  style={{ 
-                    width: `${data.totalRevenue ? ((data.revenueByTier.Premium || 0) / data.totalRevenue) * 100 : 0}%` 
-                  }}
-                ></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium text-gray-600">Executive</span>
-                <span className="text-sm font-medium text-gray-800">
-                  ${(data.revenueByTier.Executive || 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-amber-600 h-2 rounded-full" 
-                  style={{ 
-                    width: `${data.totalRevenue ? ((data.revenueByTier.Executive || 0) / data.totalRevenue) * 100 : 0}%` 
-                  }}
-                ></div>
-              </div>
-            </div>
+            {['Basic', 'Premium', 'Executive'].map((tier) => {
+              const revenue = data.revenueByTier[tier] || 0;
+              const percentage = getPercentage(revenue, data.totalRevenue);
+              
+              return (
+                <div key={tier}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium text-gray-600">{tier}</span>
+                    <span className="text-sm font-medium text-gray-800">
+                      ${revenue.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        tier === 'Basic' ? 'bg-blue-600' :
+                        tier === 'Premium' ? 'bg-teal-600' : 'bg-amber-600'
+                      }`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
           
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Desk Type Distribution</h4>
-            
-            <div className="flex items-center justify-center">
-              <div className="w-32 h-32 relative">
-                <svg viewBox="0 0 36 36" className="w-full h-full">
-                  <circle 
-                    cx="18" 
-                    cy="18" 
-                    r="16" 
-                    fill="none" 
-                    stroke="#ddd" 
-                    strokeWidth="2" 
-                  />
-                  
-                  {/* Individual desks */}
-                  <circle 
-                    cx="18" 
-                    cy="18" 
-                    r="16" 
-                    fill="none" 
-                    stroke="#3B82F6" 
-                    strokeWidth="4" 
-                    strokeDasharray={`${(data.bookingsByDeskType.individual || 0) / bookings.length * 100} 100`}
-                    strokeDashoffset="25" 
-                    strokeLinecap="round"
-                  />
-                  
-                  {/* Team desks */}
-                  <circle 
-                    cx="18" 
-                    cy="18" 
-                    r="16" 
-                    fill="none" 
-                    stroke="#0D9488" 
-                    strokeWidth="4" 
-                    strokeDasharray={`${(data.bookingsByDeskType.team || 0) / bookings.length * 100} 100`}
-                    strokeDashoffset={`${100 - (data.bookingsByDeskType.individual || 0) / bookings.length * 100 + 25}`}
-                    strokeLinecap="round"
-                  />
-                </svg>
+          {bookings.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Desk Type Distribution</h4>
+              
+              <div className="flex items-center justify-center">
+                <div className="w-32 h-32 relative">
+                  <svg viewBox="0 0 36 36" className="w-full h-full">
+                    <circle 
+                      cx="18" 
+                      cy="18" 
+                      r="16" 
+                      fill="none" 
+                      stroke="#ddd" 
+                      strokeWidth="2" 
+                    />
+                    
+                    {/* Individual desks */}
+                    <circle 
+                      cx="18" 
+                      cy="18" 
+                      r="16" 
+                      fill="none" 
+                      stroke="#3B82F6" 
+                      strokeWidth="4" 
+                      strokeDasharray={`${getPercentage(data.bookingsByDeskType.individual, bookings.length)} 100`}
+                      strokeDashoffset="25" 
+                      strokeLinecap="round"
+                    />
+                    
+                    {/* Team desks */}
+                    <circle 
+                      cx="18" 
+                      cy="18" 
+                      r="16" 
+                      fill="none" 
+                      stroke="#0D9488" 
+                      strokeWidth="4" 
+                      strokeDasharray={`${getPercentage(data.bookingsByDeskType.team, bookings.length)} 100`}
+                      strokeDashoffset={`${100 - getPercentage(data.bookingsByDeskType.individual, bookings.length) + 25}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              
+              <div className="flex justify-center space-x-6 mt-4">
+                <div className="flex items-center">
+                  <div className="h-3 w-3 bg-blue-500 rounded-full mr-1"></div>
+                  <span className="text-xs text-gray-600">Individual</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="h-3 w-3 bg-teal-500 rounded-full mr-1"></div>
+                  <span className="text-xs text-gray-600">Team</span>
+                </div>
               </div>
             </div>
-            
-            <div className="flex justify-center space-x-6 mt-4">
-              <div className="flex items-center">
-                <div className="h-3 w-3 bg-blue-500 rounded-full mr-1"></div>
-                <span className="text-xs text-gray-600">Individual</span>
-              </div>
-              <div className="flex items-center">
-                <div className="h-3 w-3 bg-teal-500 rounded-full mr-1"></div>
-                <span className="text-xs text-gray-600">Team</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

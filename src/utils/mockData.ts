@@ -1,4 +1,4 @@
-import { Desk, Booking, TimeSlot, User, MembershipTier } from '../types';
+import { Desk, Booking, TimeSlot } from '../types';
 
 // Generate 10 individual desks
 export const generateDesks = (): Desk[] => {
@@ -33,34 +33,12 @@ export const generateTimeSlots = (): TimeSlot[] => {
   return timeSlots;
 };
 
-// Mock user data
-export const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    membershipTier: 'Basic',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    membershipTier: 'Premium',
-  },
-  {
-    id: '3',
-    name: 'Robert Johnson',
-    email: 'robert@example.com',
-    membershipTier: 'Executive',
-  },
-];
-
 // Generate sample bookings
 export const generateBookings = (): Booking[] => {
   return [
     {
       id: '1',
-      userId: '1',
+      userId: 'demo-user',
       deskId: 1,
       date: '2025-01-15',
       startTime: '9:00',
@@ -71,7 +49,7 @@ export const generateBookings = (): Booking[] => {
     },
     {
       id: '2',
-      userId: '2',
+      userId: 'demo-user',
       deskId: 5,
       date: '2025-01-16',
       startTime: '13:00',
@@ -82,7 +60,7 @@ export const generateBookings = (): Booking[] => {
     },
     {
       id: '3',
-      userId: '3',
+      userId: 'demo-user',
       deskId: 11,
       date: '2025-01-17',
       startTime: '10:00',

@@ -8,16 +8,13 @@ interface DeskMapProps {
 }
 
 const DeskMap: React.FC<DeskMapProps> = ({ onSelectDesk }) => {
-  const { desks, selectedDate, selectedStartTime, selectedEndTime, isDeskAvailable } = useBooking();
+  const { desks, selectedDate, selectedStartTime, selectedEndTime, isDeskAvailable, setSelectedDesk } = useBooking();
 
   const individualDesks = desks.filter(desk => desk.type === 'individual');
   const teamDesks = desks.filter(desk => desk.type === 'team');
 
   const handleDeskClick = (desk: Desk) => {
-    if (!selectedStartTime || !selectedEndTime) {
-      alert('Please select a time slot first');
-      return;
-    }
+    setSelectedDesk(desk);
     onSelectDesk(desk);
   };
 

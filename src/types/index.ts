@@ -1,10 +1,3 @@
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  membershipTier: MembershipTier;
-}
-
 export type MembershipTier = 'Basic' | 'Premium' | 'Executive';
 
 export interface Desk {
