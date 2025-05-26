@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { Calendar, Clock, CreditCard } from 'lucide-react';
+import { Calendar, Clock, Zap, CheckCircle, Sparkles, Users, Monitor } from 'lucide-react';
 
 const BookingForm: React.FC = () => {
   const { 
@@ -11,7 +11,6 @@ const BookingForm: React.FC = () => {
     selectedMembershipTier,
     setSelectedStartTime, 
     setSelectedEndTime,
-    calculateBookingPrice,
     createBooking
   } = useBooking();
   
@@ -67,6 +66,14 @@ const BookingForm: React.FC = () => {
       const booking = await createBooking();
       
       if (booking) {
+        // Save to localStorage for demo purposes
+        const existingBookings = JSON.parse(localStorage.getItem('demoBookings') || '[]');
+        existingBookings.push({
+          ...booking,
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('demoBookings', JSON.stringify(existingBookings));
+        
         setBookingSuccess(true);
         setStartTime('');
         setEndTime('');
@@ -81,35 +88,58 @@ const BookingForm: React.FC = () => {
     }
   };
   
-  const totalPrice = calculateBookingPrice();
-  const canBook = startTime && endTime && totalPrice > 0 && selectedDesk;
+  const canBook = startTime && endTime && selectedDesk;
+  const duration = startTime && endTime ? parseInt(endTime.split(':')[0]) - parseInt(startTime.split(':')[0]) : 0;
   
   if (bookingSuccess) {
     return (
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="bg-green-50 p-6 border-b border-green-100">
-          <div className="flex items-center justify-center">
-            <div className="rounded-full bg-green-100 p-3">
-              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+      <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl rounded-3xl border border-green-500/30 overflow-hidden shadow-2xl">
+        {/* Success Header */}
+        <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 p-8 border-b border-green-500/20 relative overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0">
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-green-400 rounded-full animate-float opacity-40"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${i * 0.2}s`,
+                }}
+              />
+            ))}
+          </div>
+          
+          <div className="flex items-center justify-center relative z-10">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+              <CheckCircle className="h-10 w-10 text-white" />
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-center text-green-800 mt-4">Booking Confirmed!</h2>
-          <p className="text-center text-green-700 mt-1">Your workspace has been reserved successfully.</p>
+          <h2 className="text-3xl font-bold text-center text-white mt-6 mb-2">Booking Confirmed!</h2>
+          <p className="text-center text-green-200 text-lg">Your workspace reservation is secured</p>
         </div>
         
-        <div className="p-6">
-          <p className="text-gray-600 mb-4 text-center">
-            You can view or manage your booking in the "My Bookings" section.
-          </p>
+        {/* Success Content */}
+        <div className="p-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center px-4 py-2 bg-green-500/20 rounded-full border border-green-500/30 mb-4">
+              <Sparkles className="w-4 h-4 text-green-400 mr-2" />
+              <span className="text-green-300 font-medium">Ready to work!</span>
+            </div>
+            <p className="text-gray-300 leading-relaxed">
+              Your workspace is ready and waiting. You can view or manage your reservation anytime in your bookings dashboard.
+            </p>
+          </div>
           
-          <div className="flex justify-center space-x-3">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => window.location.href = '/my-bookings'}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="group px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/25 transform hover:scale-105 transition-all duration-300 flex items-center justify-center"
             >
+              <Users className="mr-2 w-5 h-5" />
               View My Bookings
+              <div className="ml-2 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
             
             <button
@@ -117,9 +147,10 @@ const BookingForm: React.FC = () => {
                 setBookingSuccess(false);
                 window.location.href = '/booking';
               }}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 hover:border-green-400/50 transform hover:scale-105 transition-all duration-300 flex items-center justify-center"
             >
-              Book Another
+              <Zap className="mr-2 w-5 h-5" />
+              Book Another Space
             </button>
           </div>
         </div>
@@ -128,132 +159,218 @@ const BookingForm: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Booking Details</h2>
+    <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 p-6 border-b border-orange-500/20 relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-orange-400 rounded-full animate-float opacity-30"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${i * 0.3}s`,
+              }}
+            />
+          ))}
+        </div>
         
+        <div className="flex items-center relative z-10">
+          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center mr-4">
+            <Calendar className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1">Reserve Your Time</h2>
+            <p className="text-orange-200">Select your preferred date and time slot</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-8">
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md text-sm">
-            {error}
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl text-sm backdrop-blur-sm">
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-red-500 rounded-full mr-2" />
+              {error}
+            </div>
           </div>
         )}
         
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-              <Calendar className="h-4 w-4 mr-1 text-blue-600" />
+        <div className="space-y-6">
+          {/* Date Selection */}
+          <div className="group">
+            <label className="block text-lg font-semibold text-white mb-3 flex items-center">
+              <Calendar className="h-5 w-5 mr-2 text-orange-400 group-hover:text-orange-300 transition-colors duration-200" />
               Select Date
             </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={handleDateChange}
-              min={today}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div className="relative">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={handleDateChange}
+                min={today}
+                className="w-full px-4 py-4 bg-gray-700/50 backdrop-blur-sm border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-white text-lg transition-all duration-300 hover:border-orange-400"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0 opacity-0 hover:opacity-100 rounded-xl transition-opacity duration-300 pointer-events-none" />
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                <Clock className="h-4 w-4 mr-1 text-blue-600" />
+          {/* Time Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="group">
+              <label className="block text-lg font-semibold text-white mb-3 flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-orange-400 group-hover:text-orange-300 transition-colors duration-200" />
                 Start Time
               </label>
-              <select
-                value={startTime}
-                onChange={handleStartTimeChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select start time</option>
-                {timeSlots.map(slot => (
-                  <option key={slot.id} value={slot.time} disabled={!slot.isAvailable}>
-                    {slot.time}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={startTime}
+                  onChange={handleStartTimeChange}
+                  className="w-full px-4 py-4 bg-gray-700/50 backdrop-blur-sm border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-white text-lg transition-all duration-300 hover:border-orange-400 appearance-none cursor-pointer"
+                >
+                  <option value="" className="bg-gray-800">Select start time</option>
+                  {timeSlots.map(slot => (
+                    <option key={slot.id} value={slot.time} disabled={!slot.isAvailable} className="bg-gray-800">
+                      {slot.time}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0 opacity-0 hover:opacity-100 rounded-xl transition-opacity duration-300 pointer-events-none" />
+              </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                <Clock className="h-4 w-4 mr-1 text-blue-600" />
+            <div className="group">
+              <label className="block text-lg font-semibold text-white mb-3 flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-orange-400 group-hover:text-orange-300 transition-colors duration-200" />
                 End Time
               </label>
-              <select
-                value={endTime}
-                onChange={handleEndTimeChange}
-                disabled={!startTime}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select end time</option>
-                {filteredEndTimes.map(slot => (
-                  <option key={slot.id} value={slot.time} disabled={!slot.isAvailable}>
-                    {slot.time}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={endTime}
+                  onChange={handleEndTimeChange}
+                  disabled={!startTime}
+                  className="w-full px-4 py-4 bg-gray-700/50 backdrop-blur-sm border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-white text-lg transition-all duration-300 hover:border-orange-400 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="" className="bg-gray-800">Select end time</option>
+                  {filteredEndTimes.map(slot => (
+                    <option key={slot.id} value={slot.time} disabled={!slot.isAvailable} className="bg-gray-800">
+                      {slot.time}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-orange-500/0 opacity-0 hover:opacity-100 rounded-xl transition-opacity duration-300 pointer-events-none" />
+              </div>
             </div>
           </div>
           
+          {/* Booking Summary */}
           {startTime && endTime && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-md border border-blue-100">
-              <h3 className="font-medium text-blue-800 flex items-center">
-                <CreditCard className="h-4 w-4 mr-1" />
-                Price Details
-              </h3>
+            <div className="mt-8 p-6 bg-gradient-to-br from-orange-500/10 to-amber-500/10 backdrop-blur-sm rounded-2xl border border-orange-500/20 relative overflow-hidden">
+              {/* Background Animation */}
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-amber-500/5 animate-pulse" />
+              </div>
               
-              <div className="mt-2 space-y-1 text-sm">
-                <div className="flex justify-between text-gray-600">
-                  <span>Membership Tier:</span>
-                  <span className="font-medium text-gray-800">{selectedMembershipTier}</span>
+              <div className="relative z-10">
+                <h3 className="font-bold text-orange-300 flex items-center mb-4 text-xl">
+                  <Sparkles className="h-5 w-5 mr-2 animate-spin-slow" />
+                  Booking Summary
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Experience:</span>
+                      <span className="text-white font-bold">{selectedMembershipTier}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Duration:</span>
+                      <span className="text-white font-bold">{duration} hours</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Workspace:</span>
+                      <span className="text-white font-bold flex items-center">
+                        {selectedDesk?.type === 'individual' ? (
+                          <Monitor className="w-4 h-4 mr-1" />
+                        ) : (
+                          <Users className="w-4 h-4 mr-1" />
+                        )}
+                        {selectedDesk?.name}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mb-2 mx-auto animate-pulse">
+                        <CheckCircle className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-orange-200 font-medium">Ready to book!</p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="flex justify-between text-gray-600">
-                  <span>Duration:</span>
-                  <span className="font-medium text-gray-800">
-                    {parseInt(endTime.split(':')[0]) - parseInt(startTime.split(':')[0])} hours
-                  </span>
-                </div>
-                
-                {parseInt(endTime.split(':')[0]) - parseInt(startTime.split(':')[0]) > 3 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount:</span>
-                    <span className="font-medium">10% (for bookings over 3 hours)</span>
+                {duration > 3 && (
+                  <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl">
+                    <div className="flex items-center text-green-300">
+                      <Zap className="w-4 h-4 mr-2" />
+                      <span className="font-medium">Extended session bonus: Enhanced amenities included!</span>
+                    </div>
                   </div>
                 )}
-                
-                <div className="border-t border-blue-200 pt-2 mt-2 flex justify-between font-medium">
-                  <span className="text-blue-800">Total Price:</span>
-                  <span className="text-blue-800">${totalPrice.toFixed(2)}</span>
-                </div>
               </div>
             </div>
           )}
         </div>
       </div>
       
-      <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+      {/* CTA Section */}
+      <div className="bg-gray-800/50 px-8 py-6 border-t border-gray-700 relative overflow-hidden">
+        {/* Background Animation */}
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-amber-500/5" />
+        
         <button
           onClick={handleBooking}
           disabled={!canBook || isProcessing}
-          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-colors ${
+          className={`relative w-full py-4 px-6 rounded-2xl shadow-lg text-lg font-bold transition-all duration-300 flex items-center justify-center ${
             canBook && !isProcessing
-              ? 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-              : 'bg-gray-400 cursor-not-allowed'
+              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transform hover:scale-105 hover:-rotate-1 shadow-orange-500/25'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
         >
           {isProcessing ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Processing...
+            <span className="flex items-center">
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3" />
+              Processing your booking...
             </span>
           ) : (
-            'Confirm Booking'
+            <span className="flex items-center">
+              <Zap className="w-5 h-5 mr-2 animate-pulse" />
+              Confirm Booking
+              <CheckCircle className="w-5 h-5 ml-2" />
+            </span>
           )}
         </button>
       </div>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-spin-slow {
+          animation: spin 3s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };
